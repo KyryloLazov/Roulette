@@ -45,7 +45,6 @@ public class Roulette : MonoBehaviour
 
         // Визначаємо виграшне число
         winningNumber = Random.Range(0, 10);
-        Debug.Log($"Виграшне число: {winningNumber}");
 
         // Визначаємо кут для зупинки рулетки з урахуванням додаткових обертів
         targetAngle = (winningNumber * 36f) + (360f * additionalSpins); // 36 градусів на одне число + кілька обертів
