@@ -15,10 +15,21 @@ public class GameManager : MonoBehaviour
     private int totalPlayers = 5; // Загальна кількість гравців
     private List<Player> players = new List<Player>(); // Список гравців
     private int selectedNumber; // Вибрана клітинка для ставки
+    private float minBet; // Максимальна ставка
+    private float maxBet; // Мінімальна ставка
 
-    void Start()
+
+    public void SetGameSettings(float minBet, float maxBet, int playerCount)
     {
-        // Ініціалізуємо гравців з початковим балансом
+        this.minBet = minBet;
+        this.maxBet = maxBet;
+        totalPlayers = playerCount;
+
+        InitializePlayers(playerCount); // Ініціалізуємо гравців на основі кількості
+    }
+
+    private void InitializePlayers(int playerCount)
+    {
         for (int i = 0; i < totalPlayers; i++)
         {
             players.Add(new Player($"Гравець {i + 1}", 1000)); // Початковий баланс — 1000
@@ -31,7 +42,6 @@ public class GameManager : MonoBehaviour
     // Оновлення UI балансу
     void UpdateBalanceUI()
     {
-        //balanceText.text = $"Баланс {players[currentPlayerIndex].Name}: {players[currentPlayerIndex].Balance}$";
         ui.UpdateBalanceText(players[currentPlayerIndex].Name, players[currentPlayerIndex].Balance);
     }
 
@@ -47,7 +57,19 @@ public class GameManager : MonoBehaviour
         // Отримуємо суму ставки з InputField
         if (!float.TryParse(betInputField.text, out float betAmount) || betAmount <= 0)
         {
-            Debug.Log("Введіть правильну суму ставки.");
+            ui.RaiseError("Введіть правильну суму ставки.");
+            return;
+        }
+
+        // Перевіряємо, чи ставка в межах дозволеного діапазону
+        if (betAmount < minBet)
+        {
+            ui.RaiseError($"Ставка не може бути меншою за мінімальну ставку: {minBet}$.");
+            return;
+        }
+        if (betAmount > maxBet)
+        {
+            ui.RaiseError($"Ставка не може бути більшою за максимальну ставку: {maxBet}$.");
             return;
         }
 
@@ -56,7 +78,7 @@ public class GameManager : MonoBehaviour
         // Перевіряємо, чи достатньо грошей на балансі
         if (currentPlayer.Balance < betAmount)
         {
-            Debug.Log("У вас недостатньо грошей для цієї ставки.");
+            ui.RaiseError("У вас недостатньо грошей для цієї ставки.");
             return;
         }
 
@@ -70,8 +92,6 @@ public class GameManager : MonoBehaviour
         }
         playerBets[selectedNumber].Add((currentPlayer, betAmount));
 
-        Debug.Log($"{currentPlayer.Name} зробив ставку {betAmount} на число {selectedNumber}");
-
         // Оновлюємо баланс в UI
         UpdateBalanceUI();
         betInputField.text = "";
@@ -84,7 +104,7 @@ public class GameManager : MonoBehaviour
         // Перевірка, чи гравець зробив хоча б одну ставку
         if (playerBets.Count == 0)
         {
-            Debug.Log("Ви повинні зробити хоча б одну ставку перед завершенням ходу.");
+            ui.RaiseError("Ви повинні зробити хоча б одну ставку перед завершенням ходу.");
             return;
         }
 
@@ -94,12 +114,10 @@ public class GameManager : MonoBehaviour
         // Якщо це був останній гравець, починається обертання рулетки
         if (currentPlayerIndex >= totalPlayers)
         {
-            Debug.Log("Усі гравці зробили свої ставки. Починаємо обертання рулетки.");
             SpinRoulette();
         }
         else
         {
-            Debug.Log($"Хід {players[currentPlayerIndex].Name}");
             // Оновлюємо баланс для наступного гравця
             UpdateBalanceUI();
         }
@@ -121,7 +139,6 @@ public class GameManager : MonoBehaviour
 
         // Отримуємо виграшне число
         int winningNumber = roulette.GetWinningNum();
-        Debug.Log($"Виграшне число: {winningNumber}");
 
         // Змінні для підрахунку
         float totalCasinoProfit = 0; // Загальний прибуток казино
@@ -142,7 +159,6 @@ public class GameManager : MonoBehaviour
                 {
                     totalCasinoProfit += betAmount; // Казино отримує ці гроші
                     playerProfits[player] -= betAmount; // Віднімаємо програш гравця
-                    Debug.Log($"{player.Name} програв {betAmount}$ на числі {betAmount}.");
                 }
             }
         }
@@ -163,7 +179,6 @@ public class GameManager : MonoBehaviour
 
                 player.Balance += winAmount;
                 playerProfits[player] += winAmount;
-                Debug.Log($"{player.Name} виграв {winAmount}$!");
             }
         }
 
@@ -209,7 +224,6 @@ public class GameManager : MonoBehaviour
     {
         currentPlayerIndex = 0;
         playerBets.Clear(); // Скидаємо всі ставки
-        Debug.Log("Гра скинута для нового раунду.");
         UpdateBalanceUI();
     }
 }

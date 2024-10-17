@@ -7,8 +7,9 @@ public class UIManager : MonoBehaviour
 {
     [SerializeField] private GameObject resultsPanel;  // Панель з результатами
     [SerializeField] private TextMeshProUGUI resultsText;  // Текст для результатів
-    [SerializeField] private TextMeshProUGUI balanceText;
+    [SerializeField] private TextMeshProUGUI balanceText; // Текст балансу гравця
     [SerializeField] private GameObject betPanel; // Панель для введення ставки
+    [SerializeField] private TextMeshProUGUI errorText;
 
     void Start()
     {
@@ -42,5 +43,10 @@ public class UIManager : MonoBehaviour
     public void HideBetPanel()
     {
         betPanel.SetActive(false);
+    }
+
+    public void RaiseError(string error)
+    {
+        errorText.text = error;
     }
 }
